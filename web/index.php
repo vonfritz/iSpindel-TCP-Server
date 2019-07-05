@@ -135,15 +135,11 @@ include_once("./include/common_db_query.php");
     if($daysago == 0) $daysago = defaultDaysAgo;
 
 // get information if TCP server is running
-    $pids=''; 
-    $running=false;
-    if (file_exists( "/var/run/ispindle-srv.pid" )) {
-        $pid= (shell_exec("cat /var/run/ispindle-srv.pid"));
-        $running = posix_getpgid(intval($pid));
+    $stat = exec("systemctl is-active ispindle-srv");
+    if ($stat == "active") {
+    $iSpindleServerRunning = $server_running;
     }
-    if ($running) {
-        $iSpindleServerRunning = $server_running . $pid;
-    } else {
+    else {
         $iSpindleServerRunning = $server_not_running;
     }
 
