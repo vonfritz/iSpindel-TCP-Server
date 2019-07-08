@@ -506,6 +506,7 @@ def handler(clientsock, addr):
                     'temperature': temperature,
                     'battery': battery,
                     'gravity': gravity,
+                    'RSSI': rssi
                 }
                 out = json.dumps(outdata)
                 dbgprint(repr(addr) + ' - sending: ' + out)
