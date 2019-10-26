@@ -1,3 +1,7 @@
+# This is an example systemd configuration file for using in an systemd environment
+# its was written for the archlinux-arm os
+# modify User and ExecStart for your needs
+
 [Unit]
 Description=iSpindle-genericTCP server and relay
 After=multi-user.target
@@ -12,4 +16,3 @@ RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
-

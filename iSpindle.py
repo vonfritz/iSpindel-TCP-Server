@@ -79,12 +79,13 @@ class MyConfigParser(ConfigParser):
 # So there shouldn't be anything here for you to adjust anymore.
 
 config = MyConfigParser()
+config_path = '~/iSpindel-Srv/config'
 
 try:
-  with open(os.path.join(os.path.expanduser('~/config'), 'iSpindle_config.ini')) as f:
+  with open(os.path.join(os.path.expanduser(config_path),'iSpindle_config.ini')) as f:
     config.readfp(f)
 except IOError:
-  config.read(os.path.join(os.path.expanduser('~/config'), 'iSpindle_default.ini')
+  config.read(os.path.join(os.path.expanduser(config_path),'iSpindle_default.ini'))
 
 # General
 DEBUG = config.get('GENERAL', 'DEBUG') # Set to 1 to enable debug output on console (usually devs only)
@@ -123,23 +124,26 @@ while check == False:
         check = False
 
 # Function to retrieve config values from SQL database
-def get_config_from_sql(section, parameter):
+def get_config_from_sql(section, parameter, spindle_name = ''):
     try:
         import mysql.connector
         cnx = mysql.connector.connect(
             user=SQL_USER,  port=SQL_PORT, password=SQL_PASSWORD, host=SQL_HOST, database=SQL_DB)
         cur = cnx.cursor()
-        sqlselect = "SELECT Value FROM Settings WHERE Section = '%s' and Parameter = '%s';" %(section, parameter)
+        sqlselect = "SELECT Value FROM Settings WHERE Section = '%s' and Parameter = '%s' " \
+                    "and ( DeviceName = '' or DeviceName = '%s' ) ORDER BY DeviceName DESC LIMIT 1;" %(section, parameter, spindle_name)
+
         cur.execute(sqlselect)
-        sqlparameters = cur.fetchall()
-        if len(sqlparameters) > 0:
-            for i in sqlparameters:
-                sqlparameter = i[0]
-            return sqlparameter.replace('\\r\\n', '\r\n')
-        else:
-            return ''
+        row = cur.fetchone()
+        sqlparameter = ''
+        if row is not None:
+            sqlparameter = row[0]
+
         cur.close()
         cnx.close()
+
+        return sqlparameter.replace('\\r\\n', '\r\n')
+
     except Exception as e:
         dbgprint(e)
 
@@ -362,6 +366,61 @@ def handler(clientsock, addr):
 
     if success:
         # We have the complete spindle data now, so let's make it available
+
+        # CSV
+        CSV = int(get_config_from_sql('CSV', 'ENABLE_CSV', spindle_name))  # Set to 1 if you want CSV (text file) output
+        OUTPATH = get_config_from_sql('CSV', 'OUTPATH', spindle_name)  # CSV output file path; filename will be name_id.csv
+        DELIMITER = get_config_from_sql('CSV', 'DELIMITER', spindle_name)  # CSV delimiter (normally use ; for Excel)
+        NEWLINE = get_config_from_sql('CSV', 'NEWLINE', spindle_name)  # newline (\r\n for windows clients)
+        DATETIME = int(
+            get_config_from_sql('CSV', 'DATETIME', spindle_name))  # Leave this at 1 to include Excel compatible timestamp in CSV
+
+        # Ubidots (using existing account)
+        UBIDOTS = int(get_config_from_sql('UBIDOTS', 'ENABLE_UBIDOTS', spindle_name))  # 1 to enable output to ubidots
+        UBI_USE_ISPINDLE_TOKEN = get_config_from_sql('UBIDOTS',
+                                                     'UBI_USE_ISPINDLE_TOKEN', spindle_name)  # 1 to use "token" field in iSpindle config (overrides UBI_TOKEN)
+        UBI_TOKEN = get_config_from_sql('UBIDOTS', 'UBI_TOKEN', spindle_name)  # global ubidots token, see manual or ubidots.com
+
+        # Forward to public server or other relay (i.e. another instance of this script)
+        FORWARD = int(get_config_from_sql('FORWARD', 'ENABLE_FORWARD', spindle_name))
+        FORWARDADDR = get_config_from_sql('FORWARD', 'FORWARDADDR', spindle_name)
+        FORWARDPORT = int(get_config_from_sql('FORWARD', 'FORWARDPORT', spindle_name))
+
+        # Fermentrack
+        FERMENTRACK = int(get_config_from_sql('FERMENTRACK', 'ENABLE_FERMENTRACK', spindle_name))
+        FERM_USE_ISPINDLE_TOKEN = get_config_from_sql('FERMENTRACK', 'FERM_USE_ISPINDLE_TOKEN', spindle_name)
+        FERMENTRACKADDR = get_config_from_sql('FERMENTRACK', 'FERMENTRACKADDR', spindle_name)
+        FERMENTRACK_TOKEN = get_config_from_sql('FERMENTRACK', 'FERMENTRACK_TOKEN', spindle_name)
+        FERMENTRACKPORT = int(get_config_from_sql('FERMENTRACK', 'FERMENTRACKPORT', spindle_name))
+
+        # BREWPILESS
+        BREWPILESS = int(get_config_from_sql('BREWPILESS', 'ENABLE_BREWPILESS', spindle_name))
+        BREWPILESSADDR = get_config_from_sql('BREWPILESS', 'BREWPILESSADDR', spindle_name)
+
+        # Forward to CraftBeerPi3 iSpindel Addon
+        CRAFTBEERPI3 = int(get_config_from_sql('CRAFTBEERPI3', 'ENABLE_CRAFTBEERPI3', spindle_name))
+        CRAFTBEERPI3ADDR = get_config_from_sql('CRAFTBEERPI3', 'CRAFTBEERPI3ADDR', spindle_name)
+        # if this is true the raw angle will be sent to CBPI3 instead of
+        # the gravity value. Use this if you want to configure the
+        # polynome from within CBPI3.
+        # Otherwise leave this 0 and just use "tilt" in CBPI3
+        CRAFTBEERPI3_SEND_ANGLE = int(get_config_from_sql('CRAFTBEERPI3', 'CRAFTBEERPI3_SEND_ANGLE', spindle_name))
+
+        # BrewSpy
+        BREWSPY = int(get_config_from_sql('BREWSPY', 'ENABLE_BREWSPY', spindle_name))
+        SPY_USE_ISPINDLE_TOKEN = int(get_config_from_sql('BREWSPY', 'SPY_USE_ISPINDLE_TOKEN', spindle_name))
+        BREWSPYADDR = get_config_from_sql('BREWSPY', 'BREWSPYADDR', spindle_name)
+        BREWSPY_TOKEN = get_config_from_sql('BREWSPY', 'BREWSPY_TOKEN', spindle_name)
+        BREWSPYPORT = int(get_config_from_sql('BREWSPY', 'BREWSPYPORT', spindle_name))
+
+        # Brewfather
+        BREWFATHER = int(get_config_from_sql('BREWFATHER', 'ENABLE_BREWFATHER', spindle_name))
+        FAT_USE_ISPINDLE_TOKEN = int(get_config_from_sql('BREWFATHER', 'FAT_USE_ISPINDLE_TOKEN', spindle_name))
+        BREWFATHERADDR = get_config_from_sql('BREWFATHER', 'BREWFATHERADDR', spindle_name)
+        BREWFATHER_TOKEN = get_config_from_sql('BREWFATHER', 'BREWFATHER_TOKEN', spindle_name)
+        BREWFATHERPORT = int(get_config_from_sql('BREWFATHER', 'BREWFATHERPORT', spindle_name))
+        BREWFATHERSUFFIX = get_config_from_sql('BREWFATHER', 'BREWFATHERSUFFIX', spindle_name)
+
         if CSV:
 	    dbgprint(repr(addr) + ' - writing CSV')
 	    recipe = 'n/a'
