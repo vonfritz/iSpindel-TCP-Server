@@ -147,6 +147,7 @@ include_once("./include/common_db_query.php");
     $send_reset = get_field_from_sql($conn,$file,"send_reset"); 
     $no_data = get_field_from_sql($conn,$file,"no_data"); 
     $header_initialgravity = get_field_from_sql($conn,$file,"header_initialgravity");
+    $adjust_history = get_field_from_sql($conn,$file,"adjust_history");
 
     $header_recipe = get_field_from_sql($conn,'diagram',"recipe_name");
 
@@ -306,7 +307,7 @@ else {
     echo "<br /><br />";
 
     echo "<div id='change' style='display: block;'>";
-    echo "<span title='Historie anpassen'><input type = 'submit' id='changehistory' name = 'Change' value = 'Historie anpassen'></span>";
+    echo "<span title='$adjust_history'><input type = 'submit' id='changehistory' name = 'Change' value = '$adjust_history'></span>";
     echo "</div>";
 
 }
