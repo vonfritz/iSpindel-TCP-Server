@@ -79,6 +79,23 @@ error_reporting(E_ALL | E_STRICT);
         exit;
     }
 
+// Self-called by changedayshistory button
+// calls index page with different daysago settings
+
+    if (isset($_POST['Change']))
+    {
+
+        // establish path by the current URL used to invoke this page
+        $url="http://";
+        $url .= $_SERVER['HTTP_HOST'].dirname($_SERVER['PHP_SELF'])."/";
+        $url .= 'index.php';
+        $url .="?days=".$_POST["changedefaultdays"];
+        // open the page
+        header("Location: ".$url);
+        unset($result, $sql_q);
+        exit;
+    }
+
 // Self-called by calibrate button
 // calls php script to calibrate Spindle in  TCP-Server
 
@@ -283,6 +300,15 @@ include_once("./include/common_db_query.php");
 }
 else {
     echo sprintf($no_data, $daysago);
+    echo "<br />";
+    echo"<input type = 'number' name = 'changedefaultdays' min = '1' max = '365' step = '1' value = '$daysago'>";
+    echo($days_history);
+    echo "<br /><br />";
+
+    echo "<div id='change' style='display: block;'>";
+    echo "<span title='Historie anpassen'><input type = 'submit' id='changehistory' name = 'Change' value = 'Historie anpassen'></span>";
+    echo "</div>";
+
 }
 
 ?>
@@ -356,8 +382,8 @@ if ($len !=0 ){
 echo "</table>";
 }
 ?>
-<!-- 
-<footer>
+ 
+<!--<footer>
 <div>Icons made by <a href="https://www.flaticon.com/authors/prosymbols" title="Prosymbols">Prosymbols</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
 </footer>
 -->
