@@ -147,7 +147,9 @@ include_once("./include/common_db_query.php");
     $send_reset = get_field_from_sql($conn,$file,"send_reset"); 
     $no_data = get_field_from_sql($conn,$file,"no_data"); 
     $header_initialgravity = get_field_from_sql($conn,$file,"header_initialgravity");
-    $adjust_history = get_field_from_sql($conn,$file,"adjust_history");
+    $change_history = get_field_from_sql($conn,$file,"change_history");
+    $help = get_field_from_sql($conn,$file,"help");
+
 
     $header_recipe = get_field_from_sql($conn,'diagram',"recipe_name");
 
@@ -307,7 +309,7 @@ else {
     echo "<br /><br />";
 
     echo "<div id='change' style='display: block;'>";
-    echo "<span title='$adjust_history'><input type = 'submit' id='changehistory' name = 'Change' value = '$adjust_history'></span>";
+    echo "<span title='$change_history'><input type = 'submit' id='changehistory' name = 'Change' value = '$change_history'></span>";
     echo "</div>";
 
 }
@@ -384,9 +386,11 @@ echo "</table>";
 }
 ?>
  
-<!--<footer>
-<div>Icons made by <a href="https://www.flaticon.com/authors/prosymbols" title="Prosymbols">Prosymbols</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+
+<footer>
+<?php echo"<div><a href='help.php' title='$help'>$help</a></div>"; ?>
+<!-- <div>Icons made by <a href="https://www.flaticon.com/authors/prosymbols" title="Prosymbols">Prosymbols</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div> -->
 </footer>
--->
+
 </body>
 </form>
